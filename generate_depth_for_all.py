@@ -1,3 +1,5 @@
+import json
+
 import cv2
 import torch
 import os
@@ -43,6 +45,17 @@ def process_folder(image_dir, model, gt_depth, noise_type):
     return metrics
 
 
+def generate_depth(image_path, model):
+    print(f"Processing {image_path}")
+    depth = process_image(image_path, model)
+    base_name = os.path.basename(image_path)
+    depth_dir_name = os.path.dirname(image_path) + '_depth'
+    os.makedirs(depth_dir_name, exist_ok=True)
+    depth_path = os.path.join(depth_dir_name, base_name)
+    if not os.path.exists(depth_path):
+        cv2.imwrite(depth_path, depth)
+
+
 # 请你把对于每个文件夹，生成他对应的depth文件，dir_name_depth，basename同名，然后把
 if __name__ == '__main__':
 
@@ -61,18 +74,11 @@ if __name__ == '__main__':
     model.load_state_dict(torch.load(f'checkpoints/depth_anything_v2_{encoder}.pth', map_location='cpu'))
     model = model.to(DEVICE).eval()
 
-    data_root = "/dataset/vfayezzhang/dataset/SID/Sony/long_rgb"
-    # data_root = "/dataset/vfayezzhang/dataset/SID/Sony/short_rgb"
-    for root, dir, files in os.walk(data_root):
-        files = sorted(files)
-        for file in files:
-            if 'depth' in root or 'depth' in file or not (file.endswith('.jpg') or file.endswith('.png')):
-                continue
-            image_path = os.path.join(root, file)
-            print(f"Processing {image_path}")
-            depth = process_image(image_path, model)
-            depth_dir_name = root + "_depth"
-            os.makedirs(depth_dir_name, exist_ok=True)
-            depth_path = os.path.join(depth_dir_name, file)
-            if not os.path.exists(depth_path):
-                cv2.imwrite(depth_path, depth)
+    with open('meta_data.json', 'r') as f:
+        meta_data = json.load(f)
+    meta_data = sorted(meta_data, key=lambda x: x['rgb_path'])
+    for data in meta_data:
+        rgb_path = data['rgb_path']
+        ll_path = data['ll_path']
+        generate_depth(rgb_path, model)
+        generate_depth(ll_path, model)
