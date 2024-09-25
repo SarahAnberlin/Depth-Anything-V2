@@ -135,6 +135,8 @@ if __name__ == '__main__':
         delta2_list.append(delta2_acc)
         delta3_list.append(delta3_acc)
 
+        rgb_depth = rgb_depth.transpose(1, 2, 0)
+        ll_depth = ll_depth.transpose(1, 2, 0)
         save_comparison_plot(rgb_path, ll_path, rgb_depth, ll_depth)
 
         cnt += 1
