@@ -60,7 +60,7 @@ def process_folder(image_dir, model, gt_depth, noise_type):
 
 # 请你把对于每个文件夹，生成他对应的depth文件，dir_name_depth，basename同名，然后把
 if __name__ == '__main__':
-    data_root = 'D:/Dataset/LOLdataset/'
+    data_root = "/dataset/vfayezzhang/dataset/LOLdataset/"
     for root, dir, files in os.walk(data_root):
         for file in files:
             if 'depth' in root or 'depth' in file or not (file.endswith('.jpg') or file.endswith('.png')):
