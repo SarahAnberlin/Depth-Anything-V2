@@ -163,7 +163,7 @@ if __name__ == '__main__':
         delta2_list.append(delta2_acc)
         delta3_list.append(delta3_acc)
 
-        save_comparison_plot(rgb_path, ll_path, rgb_depth_path, ll_depth_path)
+        # save_comparison_plot(rgb_path, ll_path, rgb_depth_path, ll_depth_path)
 
     # 计算所有图像的平均指标
     avg_abs_rel_diff = np.mean(abs_rel_diff_list)
