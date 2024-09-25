@@ -61,8 +61,10 @@ if __name__ == '__main__':
     model.load_state_dict(torch.load(f'checkpoints/depth_anything_v2_{encoder}.pth', map_location='cpu'))
     model = model.to(DEVICE).eval()
 
-    data_root = "/dataset/vfayezzhang/dataset/SID/Sony/"
+    data_root = "/dataset/vfayezzhang/dataset/SID/Sony/long_rgb"
+    data_root = "/dataset/vfayezzhang/dataset/SID/Sony/short_rgb"
     for root, dir, files in os.walk(data_root):
+        files = sorted(files)
         for file in files:
             if 'depth' in root or 'depth' in file or not (file.endswith('.jpg') or file.endswith('.png')):
                 continue
