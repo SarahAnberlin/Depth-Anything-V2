@@ -46,10 +46,11 @@ def save_comparison_plot(rgb_path, ll_path, rgb_depth_path, ll_depth_path):
     ll_depth = Image.open(ll_depth_path)
 
     # Resize to 480 * 720
-    rgb_image = rgb_image.resize((480, 720))
-    ll_image = ll_image.resize((480, 720))
-    rgb_depth = rgb_depth.resize((480, 720))
-    ll_depth = ll_depth.resize((480, 720))
+    size = (720, 480)
+    rgb_image = rgb_image.resize(size)
+    ll_image = ll_image.resize(size)
+    rgb_depth = rgb_depth.resize(size)
+    ll_depth = ll_depth.resize(size)
 
     # 获取路径名并建立summary文件夹
     dirname = os.path.dirname(rgb_path)
