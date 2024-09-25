@@ -1,0 +1,8 @@
+{
+  "Name": "generate-depth-for-sid-reverse",
+  "Image": "harbor.smoa.cc/fayez/cuda121conda:runtime",
+  "Command": "source ~/.bashrc; conda activate DAv2;cd /dataset/vfayezzhang/test/DAv2/master ; python generate_depth_for_SID.py --reverse",
+  "GPU": 1,
+  "Debug": false,
+  "arch": "ampere"
+}

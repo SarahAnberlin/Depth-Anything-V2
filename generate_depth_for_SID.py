@@ -1,3 +1,4 @@
+import argparse
 import json
 
 import cv2
@@ -60,6 +61,12 @@ def generate_depth(image_path, model):
 # 请你把对于每个文件夹，生成他对应的depth文件，dir_name_depth，basename同名，然后把
 if __name__ == '__main__':
 
+    parser = argparse.ArgumentParser(description='Generate depth images for SID dataset')
+    parser.add_argument('--reverse', action='store_true', help='Reverse the order of the images')
+    args = parser.parse_args()
+
+    reverse = args.reverse
+
     DEVICE = 'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu'
 
     model_configs = {
@@ -74,12 +81,15 @@ if __name__ == '__main__':
     model = DepthAnythingV2(**model_configs[encoder])
     model.load_state_dict(torch.load(f'checkpoints/depth_anything_v2_{encoder}.pth', map_location='cpu'))
     model = model.to(DEVICE).eval()
-
+    cnt = 0
     with open('meta_data.json', 'r') as f:
         meta_data = json.load(f)
-    meta_data = sorted(meta_data, key=lambda x: x['rgb_path'])
+    meta_data = sorted(meta_data, key=lambda x: x['rgb_path'], reverse=reverse)
     for data in meta_data:
         rgb_path = data['rgb_path']
         ll_path = data['ll_path']
         generate_depth(rgb_path, model)
         generate_depth(ll_path, model)
+        cnt += 1
+        if cnt % 100 == 0:
+            print(f"Processed {cnt} images")
