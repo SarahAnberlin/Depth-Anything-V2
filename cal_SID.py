@@ -31,17 +31,25 @@ def generate_depth(image_path, model, return_depth=True):
         os.makedirs(depth_dir_name, exist_ok=True)
         print(f"Saving depth to {depth_path}")
         cv2.imwrite(depth_path, depth)
-        return depth
+        return depth, depth_path
     elif return_depth:
         depth = cv2.imread(depth_path)
-        return depth
-    return None
+        return depth, depth_path
+    return None, depth_path
 
 
-def save_comparison_plot(rgb_path, ll_path, rgb_depth, ll_depth):
+def save_comparison_plot(rgb_path, ll_path, rgb_depth_path, ll_depth_path):
     # 加载原始RGB图像和LL图像
     rgb_image = Image.open(rgb_path)
     ll_image = Image.open(ll_path)
+    rgb_depth = Image.open(rgb_depth_path)
+    ll_depth = Image.open(ll_depth_path)
+
+    # Resize to 480 * 720
+    rgb_image = rgb_image.resize((480, 720))
+    ll_image = ll_image.resize((480, 720))
+    rgb_depth = rgb_depth.resize((480, 720))
+    ll_depth = ll_depth.resize((480, 720))
 
     # 获取路径名并建立summary文件夹
     dirname = os.path.dirname(rgb_path)
@@ -53,28 +61,28 @@ def save_comparison_plot(rgb_path, ll_path, rgb_depth, ll_depth):
     filename_without_ext = os.path.splitext(filename)[0]
 
     # 绘制对比图
-    fig, axs = plt.subplots(2, 2, figsize=(10, 10))
+    fig, axs = plt.subplots(2, 2, figsize=(20, 20))
 
     # 设置每个图像，并增加边框
     axs[0, 0].imshow(rgb_image)
-    axs[0, 0].set_title('RGB Image', fontsize=16)
+    axs[0, 0].set_title('RGB Image', fontsize=30)
     axs[0, 0].patch.set_edgecolor('black')
-    axs[0, 0].patch.set_linewidth(2)
+    axs[0, 0].patch.set_linewidth(8)
 
     axs[0, 1].imshow(ll_image)
-    axs[0, 1].set_title('LL Image', fontsize=16)
+    axs[0, 1].set_title('LL Image', fontsize=30)
     axs[0, 1].patch.set_edgecolor('black')
-    axs[0, 1].patch.set_linewidth(2)
+    axs[0, 1].patch.set_linewidth(8)
 
     axs[1, 0].imshow(rgb_depth, cmap='plasma')
-    axs[1, 0].set_title('RGB Depth', fontsize=16)
+    axs[1, 0].set_title('RGB Depth', fontsize=30)
     axs[1, 0].patch.set_edgecolor('black')
-    axs[1, 0].patch.set_linewidth(2)
+    axs[1, 0].patch.set_linewidth(8)
 
     axs[1, 1].imshow(ll_depth, cmap='plasma')
-    axs[1, 1].set_title('LL Depth', fontsize=16)
+    axs[1, 1].set_title('LL Depth', fontsize=30)
     axs[1, 1].patch.set_edgecolor('black')
-    axs[1, 1].patch.set_linewidth(2)
+    axs[1, 1].patch.set_linewidth(8)
 
     # 移除多余的坐标轴
     for ax in axs.flat:
@@ -127,8 +135,8 @@ if __name__ == '__main__':
         rgb_path = data['rgb_path']
         ll_path = data['ll_path']
 
-        rgb_depth = generate_depth(rgb_path, model)
-        ll_depth = generate_depth(ll_path, model)
+        rgb_depth, rgb_depth_path = generate_depth(rgb_path, model)
+        ll_depth, ll_depth_path = generate_depth(ll_path, model)
 
         print(f"rgb_depth.shape: {rgb_depth.shape}")
         print(f"ll_depth.shape: {ll_depth.shape}")
@@ -148,9 +156,7 @@ if __name__ == '__main__':
         delta2_list.append(delta2_acc)
         delta3_list.append(delta3_acc)
 
-        rgb_depth = rgb_depth.transpose(1, 2, 0)
-        ll_depth = ll_depth.transpose(1, 2, 0)
-        save_comparison_plot(rgb_path, ll_path, rgb_depth, ll_depth)
+        save_comparison_plot(rgb_path, ll_path, rgb_depth_path, ll_depth_path)
 
         cnt += 1
         if cnt % 100 == 0:
