@@ -53,6 +53,7 @@ def generate_depth(image_path, model):
     if not os.path.exists(depth_path):
         depth = process_image(image_path, model)
         os.makedirs(depth_dir_name, exist_ok=True)
+        print(f"Saving depth to {depth_path}")
         cv2.imwrite(depth_path, depth)
 
 
