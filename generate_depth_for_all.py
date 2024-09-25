@@ -69,7 +69,7 @@ if __name__ == '__main__':
             image_path = os.path.join(root, file)
             print(f"Processing {image_path}")
             depth = process_image(image_path, model)
-            depth_dir_name = os.path.join(root, f'{dir}_depth')
+            depth_dir_name = root + "_depth"
             os.makedirs(depth_dir_name, exist_ok=True)
             depth_path = os.path.join(depth_dir_name, file)
             if not os.path.exists(depth_path):
