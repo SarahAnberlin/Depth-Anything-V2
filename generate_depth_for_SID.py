@@ -54,22 +54,38 @@ def save_comparison_plot(rgb_path, ll_path, rgb_depth, ll_depth):
 
     # 绘制对比图
     fig, axs = plt.subplots(2, 2, figsize=(10, 10))
+
+    # 设置每个图像，并增加边框
     axs[0, 0].imshow(rgb_image)
-    axs[0, 0].set_title('RGB Image')
+    axs[0, 0].set_title('RGB Image', fontsize=16)
+    axs[0, 0].patch.set_edgecolor('black')
+    axs[0, 0].patch.set_linewidth(2)
+
     axs[0, 1].imshow(ll_image)
-    axs[0, 1].set_title('LL Image')
+    axs[0, 1].set_title('LL Image', fontsize=16)
+    axs[0, 1].patch.set_edgecolor('black')
+    axs[0, 1].patch.set_linewidth(2)
+
     axs[1, 0].imshow(rgb_depth, cmap='plasma')
-    axs[1, 0].set_title('RGB Depth')
+    axs[1, 0].set_title('RGB Depth', fontsize=16)
+    axs[1, 0].patch.set_edgecolor('black')
+    axs[1, 0].patch.set_linewidth(2)
+
     axs[1, 1].imshow(ll_depth, cmap='plasma')
-    axs[1, 1].set_title('LL Depth')
+    axs[1, 1].set_title('LL Depth', fontsize=16)
+    axs[1, 1].patch.set_edgecolor('black')
+    axs[1, 1].patch.set_linewidth(2)
 
     # 移除多余的坐标轴
     for ax in axs.flat:
         ax.axis('off')
 
+    # 减少图片之间的间隙
+    plt.subplots_adjust(wspace=0.05, hspace=0.05)
+
     # 保存图像到 summary 文件夹中
     save_path = os.path.join(summary_dir, f"{filename_without_ext}.png")
-    plt.savefig(save_path)
+    plt.savefig(save_path, bbox_inches='tight', pad_inches=0.1)
     plt.close()
 
 
