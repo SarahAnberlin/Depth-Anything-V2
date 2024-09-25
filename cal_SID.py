@@ -132,6 +132,12 @@ if __name__ == '__main__':
 
     #
     for data in meta_data:
+        cnt += 1
+        if cnt % 100 == 0:
+            print(f"Processed {cnt} images")
+
+        if cnt % 10 != 0:
+            continue
 
         rgb_path = data['rgb_path']
         ll_path = data['ll_path']
@@ -158,10 +164,6 @@ if __name__ == '__main__':
         delta3_list.append(delta3_acc)
 
         save_comparison_plot(rgb_path, ll_path, rgb_depth_path, ll_depth_path)
-
-        cnt += 1
-        if cnt % 100 == 0:
-            print(f"Processed {cnt} images")
 
     # 计算所有图像的平均指标
     avg_abs_rel_diff = np.mean(abs_rel_diff_list)
