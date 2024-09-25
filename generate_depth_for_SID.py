@@ -49,7 +49,7 @@ def save_comparison_plot(rgb_path, ll_path, rgb_depth, ll_depth):
     os.makedirs(summary_dir, exist_ok=True)
 
     # 获取文件名
-    filename = os.path.basename(rgb_path)
+    filename = os.path.basename(ll_path)
     filename_without_ext = os.path.splitext(filename)[0]
 
     # 绘制对比图
