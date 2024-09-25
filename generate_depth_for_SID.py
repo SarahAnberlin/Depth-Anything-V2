@@ -120,8 +120,8 @@ if __name__ == '__main__':
         print(f"rgb_depth.shape: {rgb_depth.shape}")
         print(f"ll_depth.shape: {ll_depth.shape}")
 
-        rgb_depth = rgb_depth.transpose(1, 2, 0)
-        ll_depth = ll_depth.transpose(1, 2, 0)
+        rgb_depth = rgb_depth.transpose(2, 0, 1)
+        ll_depth = ll_depth.transpose(2, 0, 1)
 
         abs_rel_diff = abs_relative_difference_np(rgb_depth, ll_depth)
         mse_val = mse_np(rgb_depth, ll_depth)
