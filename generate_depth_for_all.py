@@ -62,9 +62,9 @@ if __name__ == '__main__':
     model = model.to(DEVICE).eval()
 
     data_root = "/dataset/vfayezzhang/dataset/SID/Sony/long_rgb"
-    data_root = "/dataset/vfayezzhang/dataset/SID/Sony/short_rgb"
+    # data_root = "/dataset/vfayezzhang/dataset/SID/Sony/short_rgb"
     for root, dir, files in os.walk(data_root):
-        files = sorted(files[:40])
+        files = sorted(files)
         for file in files:
             if 'depth' in root or 'depth' in file or not (file.endswith('.jpg') or file.endswith('.png')):
                 continue
