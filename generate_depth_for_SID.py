@@ -47,12 +47,12 @@ def process_folder(image_dir, model, gt_depth, noise_type):
 
 def generate_depth(image_path, model):
     print(f"Processing {image_path}")
-    depth = process_image(image_path, model)
     base_name = os.path.basename(image_path)
     depth_dir_name = os.path.dirname(image_path) + '_depth'
-    os.makedirs(depth_dir_name, exist_ok=True)
     depth_path = os.path.join(depth_dir_name, base_name)
     if not os.path.exists(depth_path):
+        depth = process_image(image_path, model)
+        os.makedirs(depth_dir_name, exist_ok=True)
         cv2.imwrite(depth_path, depth)
 
 
