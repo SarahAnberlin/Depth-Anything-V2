@@ -4,3 +4,5 @@
 /checkpoints/
 /RobotCarDataset-Scraper/
 /assets/
+/.idea/
+/__pycache__/
