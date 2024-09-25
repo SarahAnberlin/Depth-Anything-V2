@@ -21,7 +21,7 @@ def process_image(image_path, model):
 
 
 def generate_depth(image_path, model, return_depth=True):
-    print(f"Processing {image_path}")
+    # print(f"Processing {image_path}")
     base_name = os.path.basename(image_path)
     depth_dir_name = os.path.dirname(image_path) + '_depth'
     depth_path = os.path.join(depth_dir_name, base_name)
