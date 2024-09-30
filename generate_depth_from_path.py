@@ -33,7 +33,7 @@ if __name__ == '__main__':
         # 'vitg': {'encoder': 'vitg', 'features': 384, 'out_channels': [1536, 1536, 1536, 1536]}
     }
 
-    data_root = r'/dataset/vfayezzhang/dataset/SIDD/test/gt_images'
+    data_root = r'/dataset/vfayezzhang/dataset/MiniImageNet1k/'
     image_paths = []
 
     for root, dir, files in os.walk(data_root):
