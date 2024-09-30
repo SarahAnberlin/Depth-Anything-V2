@@ -51,7 +51,7 @@ if __name__ == '__main__':
         model = DepthAnythingV2(**model_configs[encoder])
         model.load_state_dict(torch.load(f'checkpoints/depth_anything_v2_{encoder}.pth', map_location='cpu'))
         model = model.to(DEVICE).eval()
-
+        cnt = 0
         for image_path in image_paths:
             print(f"Processing {image_path}")
             noisy_images = []
@@ -97,9 +97,9 @@ if __name__ == '__main__':
                 axes[1, i].imshow(depth, cmap='gray')
                 axes[1, i].axis('off')
                 axes[1, i].set_title(f'Depth Map ({noise_levels[i]} sigma)')
-
+            cnt += 1
             # Save the concatenated figure
-            concat_output_path = os.path.join(dir_name + f'_concat_{encoder}_{image_path}.png')
+            concat_output_path = os.path.join(dir_name + f'_concat_{encoder}_{cnt}.png')
             plt.tight_layout()
             plt.savefig(concat_output_path)
             plt.close()
