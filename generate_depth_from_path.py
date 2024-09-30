@@ -44,7 +44,7 @@ if __name__ == '__main__':
 
     image_paths = sorted(image_paths)
 
-    noise_levels = [15, 25, 50]
+    noise_levels = [0, 15, 25, 50]
     for encoder in model_configs.keys():
 
         model = DepthAnythingV2(**model_configs[encoder])
