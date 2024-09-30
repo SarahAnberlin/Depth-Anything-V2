@@ -53,6 +53,9 @@ if __name__ == '__main__':
 
         for image_path in image_paths:
             print(f"Processing {image_path}")
+            noisy_images = []
+            depths = []
+
             for noise_level in noise_levels:
                 dir_name = os.path.dirname(image_path)
                 base_name = os.path.basename(image_path)
@@ -62,6 +65,25 @@ if __name__ == '__main__':
                 os.makedirs(noisy_image_dir, exist_ok=True)
                 depth_path = os.path.join(depth_dir, base_name)
                 noisy_image_path = os.path.join(noisy_image_dir, base_name)
+
+                # Process the image
                 noisy_image, depth = process_image(image_path, model, noise_level)
+
+                # Save individual images
                 cv2.imwrite(depth_path, depth)
                 cv2.imwrite(noisy_image_path, noisy_image)
+
+                # Add to lists for concatenation
+                noisy_images.append(noisy_image)
+                depths.append(depth)
+
+            # Concatenate the images for display
+            concatenated_noisy_images = cv2.hconcat(noisy_images)  # Horizontal concatenation of noisy images
+            concatenated_depths = cv2.hconcat(depths)  # Horizontal concatenation of depth maps
+            concatenated_output = cv2.vconcat([concatenated_noisy_images, concatenated_depths])  # Vertical combination
+
+            # Save the concatenated image
+            concat_output_path = os.path.join(dir_name + f'_concat_{encoder}.png')
+            cv2.imwrite(concat_output_path, concatenated_output)
+
+            print(f"Concatenated image saved to {concat_output_path}")
