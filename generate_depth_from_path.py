@@ -9,11 +9,13 @@ from eva_metrics import delta1_acc_np, delta2_acc_np, delta3_acc_np, abs_relativ
 
 def process_image(image_path, model, sigma):
     raw_img = cv2.imread(image_path)
+    noisy_image = None
     if sigma != 0:
         noise = np.random.normal(0, sigma, raw_img.shape)
         raw_img = raw_img + noise
+    noisy_image = raw_img
     depth = model.infer_image(raw_img)  # 生成深度图
-    return depth
+    return noisy_image, depth
 
 
 # 请你把对于每个文件夹，生成他对应的depth文件，dir_name_depth，basename同名，然后把
@@ -52,9 +54,11 @@ if __name__ == '__main__':
                 dir_name = os.path.dirname(image_path)
                 base_name = os.path.basename(image_path)
                 depth_dir = dir_name + '_depth' + f'_{encoder}_{noise_level}sigma'
+                noisy_image_dir = dir_name + '_noisy_image' + f'_{encoder}_{noise_level}sigma'
                 os.makedirs(depth_dir, exist_ok=True)
+                os.makedirs(noisy_image_dir, exist_ok=True)
                 depth_path = os.path.join(depth_dir, base_name)
-                if os.path.exists(depth_path):
-                    continue
-                depth = process_image(image_path, model, noise_level)
+                noisy_image_path = os.path.join(noisy_image_dir, base_name)
+                noisy_image, depth = process_image(image_path, model, noise_level)
                 cv2.imwrite(depth_path, depth)
+                cv2.imwrite(noisy_image_path, noisy_image)
