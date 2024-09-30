@@ -30,7 +30,7 @@ if __name__ == '__main__':
     for root, dir, files in os.walk(data_root):
         for file in files:
             file_path = os.path.join(root, file)
-            if file.endswith(('.jpg', '.png')) and ('depth' not in file):
+            if file.endswith(('.jpg', '.png')) and ('depth' not in file_path):
                 image_paths.append(file_path)
 
     image_paths = sorted(image_paths)
