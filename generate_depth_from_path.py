@@ -73,17 +73,34 @@ if __name__ == '__main__':
                 cv2.imwrite(depth_path, depth)
                 cv2.imwrite(noisy_image_path, noisy_image)
 
+                # Convert images to RGB for plt (if necessary)
+                noisy_image_rgb = cv2.cvtColor(noisy_image, cv2.COLOR_BGR2RGB) if len(
+                    noisy_image.shape) == 3 else noisy_image
+                depth_rgb = cv2.cvtColor(depth, cv2.COLOR_BGR2RGB) if len(depth.shape) == 3 else depth
+
                 # Add to lists for concatenation
-                noisy_images.append(noisy_image)
-                depths.append(depth)
+                noisy_images.append(noisy_image_rgb)
+                depths.append(depth_rgb)
 
-            # Concatenate the images for display
-            concatenated_noisy_images = cv2.hconcat(noisy_images)  # Horizontal concatenation of noisy images
-            concatenated_depths = cv2.hconcat(depths)  # Horizontal concatenation of depth maps
-            concatenated_output = cv2.vconcat([concatenated_noisy_images, concatenated_depths])  # Vertical combination
+            # Set up matplotlib figure for concatenation
+            fig, axes = plt.subplots(2, 4, figsize=(16, 8))  # 2 rows (noisy images, depths), 4 columns (noise levels)
 
-            # Save the concatenated image
+            # Plot noisy images
+            for i, noisy_image in enumerate(noisy_images):
+                axes[0, i].imshow(noisy_image)
+                axes[0, i].axis('off')
+                axes[0, i].set_title(f'Noisy Image ({noise_levels[i]} sigma)')
+
+            # Plot depth maps
+            for i, depth in enumerate(depths):
+                axes[1, i].imshow(depth, cmap='gray')
+                axes[1, i].axis('off')
+                axes[1, i].set_title(f'Depth Map ({noise_levels[i]} sigma)')
+
+            # Save the concatenated figure
             concat_output_path = os.path.join(dir_name + f'_concat_{encoder}.png')
-            cv2.imwrite(concat_output_path, concatenated_output)
+            plt.tight_layout()
+            plt.savefig(concat_output_path)
+            plt.close()
 
             print(f"Concatenated image saved to {concat_output_path}")
