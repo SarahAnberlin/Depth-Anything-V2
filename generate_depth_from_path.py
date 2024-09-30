@@ -10,11 +10,13 @@ from eva_metrics import delta1_acc_np, delta2_acc_np, delta3_acc_np, abs_relativ
 def process_image(image_path, model, sigma):
     raw_img = cv2.imread(image_path)
     noisy_image = None
+    print(f"Raw image dtype: {raw_img.dtype}")
     if sigma != 0:
         noise = np.random.normal(0, sigma, raw_img.shape)
         raw_img = raw_img + noise
     noisy_image = raw_img
     noisy_image = np.clip(noisy_image, 0, 255)
+    print(f"Noisy image dtype: {noisy_image.dtype}")
     depth = model.infer_image(noisy_image)  # 生成深度图
     return noisy_image, depth
 
