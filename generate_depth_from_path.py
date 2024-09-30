@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 import torch
 import os
 from depth_anything_v2.dpt import DepthAnythingV2
@@ -6,8 +7,11 @@ from eva_metrics import delta1_acc_np, delta2_acc_np, delta3_acc_np, abs_relativ
     threshold_percentage_np, mse_np
 
 
-def process_image(image_path, model):
+def process_image(image_path, model, sigma):
     raw_img = cv2.imread(image_path)
+    if sigma != 0:
+        noise = np.random.normal(0, sigma, raw_img.shape)
+        raw_img = raw_img + noise
     depth = model.infer_image(raw_img)  # 生成深度图
     return depth
 
@@ -24,7 +28,7 @@ if __name__ == '__main__':
         'vitg': {'encoder': 'vitg', 'features': 384, 'out_channels': [1536, 1536, 1536, 1536]}
     }
 
-    data_root = r'/dataset/vfayezzhang/dataset/SIDD/test'
+    data_root = r'/dataset/vfayezzhang/dataset/SIDD/test/gt'
     image_paths = []
 
     for root, dir, files in os.walk(data_root):
@@ -35,6 +39,7 @@ if __name__ == '__main__':
 
     image_paths = sorted(image_paths)
 
+    noise_levels = [15, 25, 50]
     for encoder in model_configs.keys():
 
         model = DepthAnythingV2(**model_configs[encoder])
@@ -43,12 +48,13 @@ if __name__ == '__main__':
 
         for image_path in image_paths:
             print(f"Processing {image_path}")
-            dir_name = os.path.dirname(image_path)
-            base_name = os.path.basename(image_path)
-            depth_dir = dir_name + '_depth' + f'_{encoder}'
-            os.makedirs(depth_dir, exist_ok=True)
-            depth_path = os.path.join(depth_dir, base_name)
-            if os.path.exists(depth_path):
-                continue
-            depth = process_image(image_path, model)
-            cv2.imwrite(depth_path, depth)
+            for noise_level in noise_levels:
+                dir_name = os.path.dirname(image_path)
+                base_name = os.path.basename(image_path)
+                depth_dir = dir_name + '_depth' + f'_{encoder}_{noise_level}sigma'
+                os.makedirs(depth_dir, exist_ok=True)
+                depth_path = os.path.join(depth_dir, base_name)
+                if os.path.exists(depth_path):
+                    continue
+                depth = process_image(image_path, model, noise_level)
+                cv2.imwrite(depth_path, depth)
