@@ -24,30 +24,30 @@ if __name__ == '__main__':
         'vitg': {'encoder': 'vitg', 'features': 384, 'out_channels': [1536, 1536, 1536, 1536]}
     }
 
-    encoder = 'vitl'  # or 'vits', 'vitb', 'vitg'
+    for encoder in model_configs.keys():
 
-    model = DepthAnythingV2(**model_configs[encoder])
-    model.load_state_dict(torch.load(f'checkpoints/depth_anything_v2_{encoder}.pth', map_location='cpu'))
-    model = model.to(DEVICE).eval()
+        model = DepthAnythingV2(**model_configs[encoder])
+        model.load_state_dict(torch.load(f'checkpoints/depth_anything_v2_{encoder}.pth', map_location='cpu'))
+        model = model.to(DEVICE).eval()
 
-    data_root = r'/dataset/vfayezzhang/dataset/SIDD/test'
-    image_paths = []
+        data_root = r'/dataset/vfayezzhang/dataset/SIDD/test'
+        image_paths = []
 
-    for root, dir, files in os.walk(data_root):
-        for file in files:
-            file_path = os.path.join(root, file)
-            if file.endswith(('.jpg', '.png')) and 'depth' not in file:
-                image_paths.append(file_path)
+        for root, dir, files in os.walk(data_root):
+            for file in files:
+                file_path = os.path.join(root, file)
+                if file.endswith(('.jpg', '.png')) and 'depth' not in file:
+                    image_paths.append(file_path)
 
-    image_paths = sorted(image_paths)
-    for image_path in image_paths:
-        print(f"Processing {image_path}")
-        dir_name = os.path.dirname(image_path)
-        base_name = os.path.basename(image_path)
-        depth_dir = dir_name + '_depth'
-        os.makedirs(depth_dir, exist_ok=True)
-        depth_path = os.path.join(depth_dir, base_name)
-        if os.path.exists(depth_path):
-            continue
-        depth = process_image(image_path, model)
-        cv2.imwrite(depth_path, depth)
+        image_paths = sorted(image_paths)
+        for image_path in image_paths:
+            print(f"Processing {image_path}")
+            dir_name = os.path.dirname(image_path)
+            base_name = os.path.basename(image_path)
+            depth_dir = dir_name + '_depth' + f'_{encoder}'
+            os.makedirs(depth_dir, exist_ok=True)
+            depth_path = os.path.join(depth_dir, base_name)
+            if os.path.exists(depth_path):
+                continue
+            depth = process_image(image_path, model)
+            cv2.imwrite(depth_path, depth)
