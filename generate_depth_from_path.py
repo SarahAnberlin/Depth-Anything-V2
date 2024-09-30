@@ -12,7 +12,7 @@ def process_image(image_path, model, sigma):
     noisy_image = None
     print(f"Raw image dtype: {raw_img.dtype}")
     if sigma != 0:
-        noise = np.random.normal(0, sigma, raw_img.shape)
+        noise = np.random.normal(0, sigma, raw_img.shape).astype(np.uint8)
         raw_img = raw_img + noise
     noisy_image = raw_img
     noisy_image = np.clip(noisy_image, 0, 255).astype(np.uint8)
