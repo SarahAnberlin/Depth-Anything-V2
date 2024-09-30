@@ -5,21 +5,6 @@ from depth_anything_v2.dpt import DepthAnythingV2
 from eva_metrics import delta1_acc_np, delta2_acc_np, delta3_acc_np, abs_relative_difference_np, \
     threshold_percentage_np, mse_np
 
-DEVICE = 'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu'
-
-model_configs = {
-    'vits': {'encoder': 'vits', 'features': 64, 'out_channels': [48, 96, 192, 384]},
-    'vitb': {'encoder': 'vitb', 'features': 128, 'out_channels': [96, 192, 384, 768]},
-    'vitl': {'encoder': 'vitl', 'features': 256, 'out_channels': [256, 512, 1024, 1024]},
-    'vitg': {'encoder': 'vitg', 'features': 384, 'out_channels': [1536, 1536, 1536, 1536]}
-}
-
-encoder = 'vitl'  # or 'vits', 'vitb', 'vitg'
-
-model = DepthAnythingV2(**model_configs[encoder])
-model.load_state_dict(torch.load(f'checkpoints/depth_anything_v2_{encoder}.pth', map_location='cpu'))
-model = model.to(DEVICE).eval()
-
 
 def process_image(image_path, model):
     raw_img = cv2.imread(image_path)
@@ -29,7 +14,23 @@ def process_image(image_path, model):
 
 # 请你把对于每个文件夹，生成他对应的depth文件，dir_name_depth，basename同名，然后把
 if __name__ == '__main__':
-    data_root = r'../../Dataset/SIDD/test'
+
+    DEVICE = 'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu'
+
+    model_configs = {
+        'vits': {'encoder': 'vits', 'features': 64, 'out_channels': [48, 96, 192, 384]},
+        'vitb': {'encoder': 'vitb', 'features': 128, 'out_channels': [96, 192, 384, 768]},
+        'vitl': {'encoder': 'vitl', 'features': 256, 'out_channels': [256, 512, 1024, 1024]},
+        'vitg': {'encoder': 'vitg', 'features': 384, 'out_channels': [1536, 1536, 1536, 1536]}
+    }
+
+    encoder = 'vitl'  # or 'vits', 'vitb', 'vitg'
+
+    model = DepthAnythingV2(**model_configs[encoder])
+    model.load_state_dict(torch.load(f'checkpoints/depth_anything_v2_{encoder}.pth', map_location='cpu'))
+    model = model.to(DEVICE).eval()
+
+    data_root = r'/dataset/vfayezzhang/dataset/SIDD/test'
     image_paths = []
 
     for root, dir, files in os.walk(data_root):
