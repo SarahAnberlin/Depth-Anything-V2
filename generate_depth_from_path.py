@@ -99,7 +99,7 @@ if __name__ == '__main__':
                 axes[1, i].set_title(f'Depth Map ({noise_levels[i]} sigma)')
 
             # Save the concatenated figure
-            concat_output_path = os.path.join(dir_name + f'_concat_{encoder}.png')
+            concat_output_path = os.path.join(dir_name + f'_concat_{encoder}_{image_path}.png')
             plt.tight_layout()
             plt.savefig(concat_output_path)
             plt.close()
