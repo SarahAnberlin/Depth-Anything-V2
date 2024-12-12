@@ -72,7 +72,7 @@ def worker(rank, world_size, encoder, model_configs, dataset, save_root):
         prediction = prediction[..., :h, :w]
         depth = prediction
         print(f"Depth prediction shape: {depth.shape}")
-        predict_depth_np = depth.squeeze().cpu().numpy()
+        predict_depth_np = depth.squeeze().detach().cpu().numpy()
         depth_gt_np = depth_gt.squeeze().cpu().numpy()
         save_fig(image_numpy, predict_depth_np, depth_gt_np, save_root, idx)
 
