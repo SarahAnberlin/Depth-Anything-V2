@@ -56,25 +56,25 @@ def worker(rank, world_size, encoder, model_configs, dataset, save_root):
         torch.load(f'/dataset/vfayezzhang/test/DIR/main/checkpoints/depth_anything_v2_{encoder}_{rank}.pth',
                    map_location='cpu', weights_only=True))
     model = model.to(device).eval()
+    with torch.no_grad():
+        for idx, (image, depth_gt) in enumerate(dataset):
+            if (idx + world_size) % world_size != rank:
+                continue
+            image, depth_gt = image.to(device), depth_gt.to(device)
+            image = image.unsqueeze(0)
+            h, w = image.shape[-2:]
+            pad_h = 14 - ((h + 14) % 14)
+            pad_w = 14 - ((w + 14) % 14)
+            image = F.pad(image, (0, pad_w, 0, pad_h), mode='reflect')
+            image_numpy = image.squeeze().cpu().numpy().transpose(1, 2, 0)
 
-    for idx, (image, depth_gt) in enumerate(dataset):
-        if (idx + world_size) % world_size != rank:
-            continue
-        image, depth_gt = image.to(device), depth_gt.to(device)
-        image = image.unsqueeze(0)
-        h, w = image.shape[-2:]
-        pad_h = 14 - ((h + 14) % 14)
-        pad_w = 14 - ((w + 14) % 14)
-        image = F.pad(image, (0, pad_w, 0, pad_h), mode='reflect')
-        image_numpy = image.squeeze().cpu().numpy().transpose(1, 2, 0)
-
-        prediction = model(image * 2 - 1)
-        prediction = prediction[..., :h, :w]
-        depth = prediction
-        print(f"Depth prediction shape: {depth.shape}")
-        predict_depth_np = depth.squeeze().detach().cpu().numpy()
-        depth_gt_np = depth_gt.squeeze().cpu().numpy()
-        save_fig(image_numpy, predict_depth_np, depth_gt_np, save_root, idx)
+            prediction = model(image * 2 - 1)
+            prediction = prediction[..., :h, :w]
+            depth = prediction
+            print(f"Depth prediction shape: {depth.shape}")
+            predict_depth_np = depth.squeeze().cpu().numpy()
+            depth_gt_np = depth_gt.squeeze().cpu().numpy()
+            save_fig(image_numpy, predict_depth_np, depth_gt_np, save_root, idx)
 
 
 def get_dataset(dataset_name):
