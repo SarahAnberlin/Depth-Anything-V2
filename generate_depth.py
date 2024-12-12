@@ -78,7 +78,9 @@ def worker(rank, world_size, encoder, model_configs, dataset, save_root):
             prediction = model(image * 2 - 1)
             prediction = prediction[..., :h, :w]
             depth = prediction
-            print(f"Depth prediction shape: {depth.shape}")
+            # print(f"Depth prediction shape: {depth.shape}")
+            if idx % 100 == 0:
+                print(f"Having processed {idx} images")
             predict_depth_np = depth.squeeze().cpu().numpy()
             depth_gt_np = depth_gt.squeeze().cpu().numpy()
             save_single_fig(predict_depth_np, save_root, idx)
