@@ -7,4 +7,6 @@ pipe = diffusers.MarigoldDepthPipeline.from_pretrained(
 
 image = diffusers.utils.load_image("https://marigoldmonodepth.github.io/images/einstein.jpg")
 depth = pipe(image).prediction
+
 print(f"Depth shape: {depth.shape}")
+print(f"Depth range: {depth.min(), depth.max()}")
