@@ -81,7 +81,7 @@ def worker(rank, world_size, encoder, model_configs, dataset, save_root):
             predict_depth_np = depth.squeeze().cpu().numpy()
             depth_gt_np = depth_gt.squeeze().cpu().numpy()
 
-            save_fig(image_numpy, predict_depth_np, depth_gt_np, save_root, idx)
+            # save_fig(image_numpy, predict_depth_np, depth_gt_np, save_root, idx)
 
 
 def get_dataset(dataset_name):
