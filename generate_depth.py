@@ -46,6 +46,12 @@ def save_fig(image, predict_depth_vis, depth_gt_vis, save_root, id):
     print(f"Visualization saved to {output_path}")
 
 
+def save_single_fig(predict_depth, save_root, id):
+    predict_depth = predict_depth * 255
+    predict_depth = predict_depth.astype(np.uint8)
+    cv2.imwrite(os.path.join(save_root, f"{id}.png"), predict_depth)
+
+
 def worker(rank, world_size, encoder, model_configs, dataset, save_root):
     # Setup the device
     device = torch.device(f'cuda:{rank}' if torch.cuda.is_available() else 'cpu')
@@ -74,6 +80,7 @@ def worker(rank, world_size, encoder, model_configs, dataset, save_root):
             print(f"Depth prediction shape: {depth.shape}")
             predict_depth_np = depth.squeeze().cpu().numpy()
             depth_gt_np = depth_gt.squeeze().cpu().numpy()
+
             save_fig(image_numpy, predict_depth_np, depth_gt_np, save_root, idx)
 
 
