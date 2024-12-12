@@ -4,71 +4,79 @@ import rawpy
 import cv2
 import numpy as np
 import os
-
+import torch
+import torch.nn.functional as F
 import cv2
 import torch
 import os
 import torch
 import torch.multiprocessing as mp
+from matplotlib import pyplot as plt
 from torch.utils.data import DataLoader
 import cv2
+
+from dataset.SintelDataset import SintelDataset
 from depth_anything_v2.dpt import DepthAnythingV2
 
 
-# 读取 .ARW 或 .RAF 文件的函数
-def read_raw_image(file_path):
-    with rawpy.imread(file_path) as raw:
-        # 使用 postprocess 方法将 RAW 文件转换为 RGB 图像
-        rgb_image = raw.postprocess()
-    return rgb_image
+def save_fig(image, predict_depth_vis, depth_gt_vis, save_root, id):
+    # Create the figure and axes
+    fig, axes = plt.subplots(1, 3, figsize=(30, 10))
 
+    # Plot input image
+    axes[0].imshow(image)
+    axes[0].set_title("Input Image")
+    axes[0].axis("off")
 
-def convert_to_float(image):
-    # 将 uint16 图像转换为 float32 图像，范围从 [0, 65535] 转换为 [0.0, 1.0]
-    return image.astype(np.float32) / 65535.0
+    # Plot predicted depth
+    axes[1].imshow(predict_depth_vis, cmap="viridis")
+    axes[1].set_title("Predicted Depth")
+    axes[1].axis("off")
 
+    # Plot ground truth depth
+    axes[2].imshow(depth_gt_vis, cmap="viridis")
+    axes[2].set_title("Ground Truth Depth")
+    axes[2].axis("off")
 
-def read_raw_to_rgb(file_path):
-    image = read_raw_image(file_path)
-    return convert_to_float(image)
+    # Save and show the figure
+    output_path = os.path.join(save_root, f"{id}.png")
+    plt.savefig(output_path, bbox_inches="tight")
+    plt.close(fig)
 
-
-def gather_files(data_roots):
-    all_files = []
-    for data_root in data_roots:
-        for root, dirs, files in os.walk(data_root):
-            if 'long_rgb' not in root:
-                continue
-            for file in files:
-                if file.endswith('.png') or file.endswith('.jpg'):
-                    all_files.append(os.path.join(root, file))
-    return all_files
+    print(f"Visualization saved to {output_path}")
 
 
 def worker(rank, world_size, encoder, model_configs, files):
+    save_root = '/dataset/vfayezzhang/test/depth-pro/infer/dav2/'
+    os.makedirs(save_root, exist_ok=True)
+
     # Setup the device
     device = torch.device(f'cuda:{rank}' if torch.cuda.is_available() else 'cpu')
 
     # Load the model
     model = DepthAnythingV2(**model_configs[encoder])
-    model.load_state_dict(torch.load(f'checkpoints/depth_anything_v2_{encoder}_{rank}.pth', map_location='cpu'))
+    model.load_state_dict(
+        torch.load(f'/dataset/vfayezzhang/test/DIR/main/checkpoints/depth_anything_v2_{encoder}_{rank}.pth',
+                   map_location='cpu', weights_only=True))
     model = model.to(device).eval()
 
-    files_to_process = files[rank::world_size]
+    for idx, (image, depth_gt) in enumerate(files):
+        if (idx + world_size) % world_size != rank:
+            continue
+        image, depth_gt = image.to(device), depth_gt.to(device)
+        image = image.unsqueeze(0)
+        h, w = image.shape[-2:]
+        pad_h = h - ((h + 14) % 14)
+        pad_w = w - ((w + 14) % 14)
+        image = F.pad(image, (0, pad_w, 0, pad_h), mode='reflect')
+        image_numpy = image.squeeze().cpu().numpy().transpose(1, 2, 0)
 
-    # Process data
-    for file in files_to_process:
-        rgb = cv2.imread(file)
-        depth = model.infer_image(rgb)
-        base_name = os.path.basename(file)
-        dir_name = os.path.dirname(file)
-        depth_dir_name = os.path.join(dir_name, '../depth')
-        depth_base_name = base_name
-        if not os.path.exists(depth_dir_name):
-            os.makedirs(depth_dir_name)
-        depth_file_path = os.path.join(depth_dir_name, depth_base_name)
-
-        cv2.imwrite(depth_file_path, depth)
+        prediction = model(image * 2 - 1)
+        depth = prediction
+        print(f"Depth prediction shape: {depth.shape}")
+        predict_depth_np = depth.squeeze().cpu().numpy()
+        depth_gt_np = depth_gt.squeeze().cpu().numpy()
+        save_fig(image_numpy, predict_depth_np, depth_gt_np, 'output', idx)
 
 
 if __name__ == '__main__':
@@ -81,23 +89,11 @@ if __name__ == '__main__':
         'vitg': {'encoder': 'vitg', 'features': 384, 'out_channels': [1536, 1536, 1536, 1536]}
     }
 
+    dataset = SintelDataset()
+    print(f"Length of dataset: {len(dataset)}")
     encoder = 'vitl'
 
-    data_roots = [
-        '/dataset/vfayezzhang/dataset/SID'
-    ]
-
-    files = gather_files(data_roots)
-    print(f'Number of files: {len(files)}')
-    world_size = 1
+    world_size = 2
     print(f'World size: {world_size}')
-    source_file = f'checkpoints/depth_anything_v2_{encoder}.pth'
-    destination_dir = 'checkpoints'
 
-    for rank in range(world_size):
-        destination_file = f'{destination_dir}/depth_anything_v2_{encoder}_{rank}.pth'
-        if not os.path.exists(destination_file):
-            shutil.copy(source_file, destination_file)
-            print(f'Copied to {destination_file}')
-
-    mp.spawn(worker, args=(world_size, encoder, model_configs, files), nprocs=world_size, join=True)
+    mp.spawn(worker, args=(world_size, encoder, model_configs, dataset), nprocs=world_size, join=True)
