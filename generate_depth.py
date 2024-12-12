@@ -48,6 +48,8 @@ def save_fig(image, predict_depth_vis, depth_gt_vis, save_root, id):
 
 def save_single_fig(predict_depth, save_root, id):
     predict_depth = (predict_depth - np.min(predict_depth)) / (np.max(predict_depth) - np.min(predict_depth))
+    predict_depth = predict_depth * 255.0
+    predict_depth = predict_depth.astype(np.uint8)
     cv2.imwrite(os.path.join(save_root, f"{id}.png"), predict_depth)
 
 
