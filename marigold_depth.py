@@ -56,7 +56,7 @@ def worker(rank, world_size, encoder, model_configs, dataset, save_root):
 
             image_numpy = image.squeeze().cpu().numpy().transpose(1, 2, 0)
 
-            prediction = pipe(image, output_type='pt').prediction
+            prediction = pipe(image, output_type='pt', num_inference_steps=50, ensemble_size=5).prediction
 
             prediction = prediction[..., :h, :w]
             depth = prediction
