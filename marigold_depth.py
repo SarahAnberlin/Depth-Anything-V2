@@ -37,7 +37,7 @@ def worker(rank, world_size, encoder, model_configs, dataset, save_root):
     device = torch.device(f'cuda:{rank}' if torch.cuda.is_available() else 'cpu')
 
     pipe = diffusers.MarigoldDepthPipeline.from_pretrained(
-        "prs-eth/marigold-depth-lcm-v1-0", variant="fp16", torch_dtype=torch.float16
+        "prs-eth/marigold-v1-0", variant="fp16", torch_dtype=torch.float16
     ).to(device)
 
     # Load the model
