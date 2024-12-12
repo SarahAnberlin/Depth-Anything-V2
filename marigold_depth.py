@@ -7,7 +7,7 @@ pipe = diffusers.MarigoldDepthPipeline.from_pretrained(
 ).to("cuda")
 
 image = diffusers.utils.load_image("https://marigoldmonodepth.github.io/images/einstein.jpg")
-depth = pipe(image).prediction
+depth = pipe(image, output_type='pt')
 depth = depth.squeeze()
 save_image(depth, "depth.png")
 print(f"Depth shape: {depth.shape}")
