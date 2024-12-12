@@ -63,12 +63,13 @@ def worker(rank, world_size, encoder, model_configs, dataset, save_root):
         image, depth_gt = image.to(device), depth_gt.to(device)
         image = image.unsqueeze(0)
         h, w = image.shape[-2:]
-        pad_h = h - ((h + 14) % 14)
-        pad_w = w - ((w + 14) % 14)
+        pad_h = 14 - ((h + 14) % 14)
+        pad_w = 14 - ((w + 14) % 14)
         image = F.pad(image, (0, pad_w, 0, pad_h), mode='reflect')
         image_numpy = image.squeeze().cpu().numpy().transpose(1, 2, 0)
 
         prediction = model(image * 2 - 1)
+        prediction = prediction[..., :h, :w]
         depth = prediction
         print(f"Depth prediction shape: {depth.shape}")
         predict_depth_np = depth.squeeze().cpu().numpy()
