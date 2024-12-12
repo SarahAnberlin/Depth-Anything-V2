@@ -46,10 +46,7 @@ def save_fig(image, predict_depth_vis, depth_gt_vis, save_root, id):
     print(f"Visualization saved to {output_path}")
 
 
-def worker(rank, world_size, encoder, model_configs, files):
-    save_root = '/dataset/vfayezzhang/test/depth-pro/infer/dav2/'
-    os.makedirs(save_root, exist_ok=True)
-
+def worker(rank, world_size, encoder, model_configs, files, save_root):
     # Setup the device
     device = torch.device(f'cuda:{rank}' if torch.cuda.is_available() else 'cpu')
 
@@ -76,7 +73,14 @@ def worker(rank, world_size, encoder, model_configs, files):
         print(f"Depth prediction shape: {depth.shape}")
         predict_depth_np = depth.squeeze().cpu().numpy()
         depth_gt_np = depth_gt.squeeze().cpu().numpy()
-        save_fig(image_numpy, predict_depth_np, depth_gt_np, 'output', idx)
+        save_fig(image_numpy, predict_depth_np, depth_gt_np, save_root, idx)
+
+
+def get_dataset(dataset_name):
+    # if dataset_name == "Hypersim":
+    #     return HypersimDataset()
+    if dataset_name == "Sintel":
+        return SintelDataset()
 
 
 if __name__ == '__main__':
@@ -88,12 +92,17 @@ if __name__ == '__main__':
         'vitl': {'encoder': 'vitl', 'features': 256, 'out_channels': [256, 512, 1024, 1024]},
         'vitg': {'encoder': 'vitg', 'features': 384, 'out_channels': [1536, 1536, 1536, 1536]}
     }
+    dataset_name = 'Sintel'
+    dataset = get_dataset(dataset_name)
+    save_root = '/dataset/vfayezzhang/test/depth-pro/infer/dav2/'
+    save_root = os.path.join(save_root, dataset_name)
+    os.makedirs(save_root, exist_ok=True)
 
-    dataset = SintelDataset()
     print(f"Length of dataset: {len(dataset)}")
     encoder = 'vitl'
 
     world_size = 2
     print(f'World size: {world_size}')
 
-    mp.spawn(worker, args=(world_size, encoder, model_configs, dataset), nprocs=world_size, join=True)
+    mp.spawn(worker, args=(world_size, encoder, model_configs, dataset, dataset, save_root), nprocs=world_size,
+             join=True)
