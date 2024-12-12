@@ -50,7 +50,9 @@ def save_single_fig(predict_depth, save_root, id):
     predict_depth = (predict_depth - np.min(predict_depth)) / (np.max(predict_depth) - np.min(predict_depth))
     predict_depth = predict_depth * 255.0
     predict_depth = predict_depth.astype(np.uint8)
-    cv2.imwrite(os.path.join(save_root, f"{id}.png"), predict_depth)
+    save_path = os.path.join(save_root, f"{id}.png")
+    print(f"Saving to {save_path}")
+    cv2.imwrite(save_path, predict_depth)
 
 
 def worker(rank, world_size, encoder, model_configs, dataset, save_root):
@@ -83,6 +85,7 @@ def worker(rank, world_size, encoder, model_configs, dataset, save_root):
                 print(f"Having processed {idx} images")
             predict_depth_np = depth.squeeze().cpu().numpy()
             depth_gt_np = depth_gt.squeeze().cpu().numpy()
+
             save_single_fig(predict_depth_np, save_root, idx)
             # save_fig(image_numpy, predict_depth_np, depth_gt_np, save_root, idx)
 
