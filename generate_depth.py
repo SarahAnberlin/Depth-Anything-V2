@@ -46,7 +46,7 @@ def save_fig(image, predict_depth_vis, depth_gt_vis, save_root, id):
     print(f"Visualization saved to {output_path}")
 
 
-def worker(rank, world_size, encoder, model_configs, files, save_root):
+def worker(rank, world_size, encoder, model_configs, dataset, save_root):
     # Setup the device
     device = torch.device(f'cuda:{rank}' if torch.cuda.is_available() else 'cpu')
 
@@ -57,7 +57,7 @@ def worker(rank, world_size, encoder, model_configs, files, save_root):
                    map_location='cpu', weights_only=True))
     model = model.to(device).eval()
 
-    for idx, (image, depth_gt) in enumerate(files):
+    for idx, (image, depth_gt) in enumerate(dataset):
         if (idx + world_size) % world_size != rank:
             continue
         image, depth_gt = image.to(device), depth_gt.to(device)
@@ -104,5 +104,5 @@ if __name__ == '__main__':
     world_size = 2
     print(f'World size: {world_size}')
 
-    mp.spawn(worker, args=(world_size, encoder, model_configs, dataset, dataset, save_root), nprocs=world_size,
+    mp.spawn(worker, args=(world_size, encoder, model_configs, dataset, save_root), nprocs=world_size,
              join=True)
