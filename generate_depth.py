@@ -15,6 +15,7 @@ from matplotlib import pyplot as plt
 from torch.utils.data import DataLoader
 import cv2
 
+from dataset.NYUDataset import NYUDataset
 from dataset.SintelDataset import SintelDataset
 from depth_anything_v2.dpt import DepthAnythingV2
 
@@ -95,6 +96,8 @@ def get_dataset(dataset_name):
     #     return HypersimDataset()
     if dataset_name == "Sintel":
         return SintelDataset()
+    if dataset_name == 'NYUv2':
+        return NYUDataset()
 
 
 if __name__ == '__main__':
@@ -106,7 +109,8 @@ if __name__ == '__main__':
         'vitl': {'encoder': 'vitl', 'features': 256, 'out_channels': [256, 512, 1024, 1024]},
         'vitg': {'encoder': 'vitg', 'features': 384, 'out_channels': [1536, 1536, 1536, 1536]}
     }
-    dataset_name = 'Sintel'
+    # dataset_name = 'Sintel'
+    dataset_name = 'NYUv2'
     dataset = get_dataset(dataset_name)
     save_root = '/dataset/vfayezzhang/test/depth-pro/infer/dav2/'
     save_root = os.path.join(save_root, dataset_name)
