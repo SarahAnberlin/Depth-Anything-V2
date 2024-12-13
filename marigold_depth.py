@@ -92,7 +92,7 @@ if __name__ == '__main__':
     dataset_names = ['NYUv2']
     for dataset_name in dataset_names:
         dataset = get_dataset(dataset_name)
-        save_root = '/dataset/vfayezzhang/test/depth-pro/infer/marigold/'
+        save_root = '/dataset/vfayezzhang/test/depth-pro/infer/vis/marigold/'
         save_root = os.path.join(save_root, dataset_name)
         os.makedirs(save_root, exist_ok=True)
 
