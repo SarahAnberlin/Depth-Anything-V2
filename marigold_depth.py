@@ -19,6 +19,7 @@ from matplotlib import pyplot as plt
 from torch.utils.data import DataLoader
 import cv2
 
+from dataset.NYUDataset import NYUDataset
 from dataset.SintelDataset import SintelDataset
 from depth_anything_v2.dpt import DepthAnythingV2
 
@@ -75,6 +76,8 @@ def get_dataset(dataset_name):
     #     return HypersimDataset()
     if dataset_name == "Sintel":
         return SintelDataset()
+    if dataset_name == 'NYUv2':
+        return NYUDataset()
 
 
 if __name__ == '__main__':
@@ -86,17 +89,18 @@ if __name__ == '__main__':
         'vitl': {'encoder': 'vitl', 'features': 256, 'out_channels': [256, 512, 1024, 1024]},
         'vitg': {'encoder': 'vitg', 'features': 384, 'out_channels': [1536, 1536, 1536, 1536]}
     }
-    dataset_name = 'Sintel'
-    dataset = get_dataset(dataset_name)
-    save_root = '/dataset/vfayezzhang/test/depth-pro/infer/marigold/'
-    save_root = os.path.join(save_root, dataset_name)
-    os.makedirs(save_root, exist_ok=True)
+    dataset_names = ['NYUv2']
+    for dataset_name in dataset_names:
+        dataset = get_dataset(dataset_name)
+        save_root = '/dataset/vfayezzhang/test/depth-pro/infer/marigold/'
+        save_root = os.path.join(save_root, dataset_name)
+        os.makedirs(save_root, exist_ok=True)
 
-    print(f"Length of dataset: {len(dataset)}")
-    encoder = 'vitl'
+        print(f"Length of dataset: {len(dataset)}")
+        encoder = 'vitl'
 
-    world_size = 2
-    print(f'World size: {world_size}')
+        world_size = 2
+        print(f'World size: {world_size}')
 
-    mp.spawn(worker, args=(world_size, encoder, model_configs, dataset, save_root), nprocs=world_size,
-             join=True)
+        mp.spawn(worker, args=(world_size, encoder, model_configs, dataset, save_root), nprocs=world_size,
+                 join=True)
