@@ -89,7 +89,7 @@ if __name__ == '__main__':
         'vitl': {'encoder': 'vitl', 'features': 256, 'out_channels': [256, 512, 1024, 1024]},
         'vitg': {'encoder': 'vitg', 'features': 384, 'out_channels': [1536, 1536, 1536, 1536]}
     }
-    dataset_names = ['NYUv2']
+    dataset_names = ['Sintel']
     for dataset_name in dataset_names:
         dataset = get_dataset(dataset_name)
         save_root = '/dataset/vfayezzhang/test/depth-pro/infer/vis/marigold/'
