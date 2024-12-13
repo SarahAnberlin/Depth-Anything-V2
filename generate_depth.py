@@ -112,7 +112,7 @@ if __name__ == '__main__':
     # dataset_name = 'Sintel'
     dataset_name = 'NYUv2'
     dataset = get_dataset(dataset_name)
-    save_root = '/dataset/vfayezzhang/test/depth-pro/infer/dav2/'
+    save_root = '/dataset/vfayezzhang/test/depth-pro/infer/vis/dav2/'
     save_root = os.path.join(save_root, dataset_name)
     os.makedirs(save_root, exist_ok=True)
 
