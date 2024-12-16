@@ -1,4 +1,5 @@
 import shutil
+import time
 
 import rawpy
 import cv2
@@ -60,15 +61,17 @@ def save_single_fig(predict_depth, save_root, id):
 def worker(rank, world_size, encoder, model_configs, dataset, save_root):
     # Setup the device
     device = torch.device(f'cuda:{rank}' if torch.cuda.is_available() else 'cpu')
-
     # Load the model
     model = DepthAnythingV2(**model_configs[encoder])
     model.load_state_dict(
         torch.load(f'/dataset/vfayezzhang/test/DIR/main/checkpoints/depth_anything_v2_{encoder}_{rank}.pth',
                    map_location='cpu', weights_only=True))
     model = model.to(device).eval()
+    cnt = 0
+    elapse_time = 0
     with torch.no_grad():
         for idx, (image, depth_gt) in enumerate(dataset):
+            cnt += 1
             if (idx + world_size) % world_size != rank:
                 continue
             image, depth_gt = image.to(device), depth_gt.to(device)
@@ -78,8 +81,10 @@ def worker(rank, world_size, encoder, model_configs, dataset, save_root):
             pad_w = 14 - ((w + 14) % 14)
             image = F.pad(image, (0, pad_w, 0, pad_h), mode='reflect')
             image_numpy = image.squeeze().cpu().numpy().transpose(1, 2, 0)
-
+            begin = time.time()
             prediction = model(image * 2 - 1)
+            end = time.time()
+            elapse_time += end - begin
             prediction = prediction[..., :h, :w]
             depth = prediction
             # print(f"Depth prediction shape: {depth.shape}")
@@ -90,6 +95,8 @@ def worker(rank, world_size, encoder, model_configs, dataset, save_root):
 
             save_single_fig(predict_depth_np, save_root, idx)
             # save_fig(image_numpy, predict_depth_np, depth_gt_np, save_root, idx)
+    if rank == 0:
+        print(f"Average time: {elapse_time / cnt}")
 
 
 def get_dataset(dataset_name):
