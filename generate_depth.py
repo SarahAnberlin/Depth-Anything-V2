@@ -94,6 +94,8 @@ def worker(rank, world_size, encoder, model_configs, dataset, save_root):
             depth_gt_np = depth_gt.squeeze().cpu().numpy()
 
             save_single_fig(predict_depth_np, save_root, idx)
+            if cnt % 50 == 0:
+                print(f"Avg time: {elapse_time / cnt} for {cnt} images")
             # save_fig(image_numpy, predict_depth_np, depth_gt_np, save_root, idx)
     if rank == 0:
         print(f"Average time: {elapse_time / cnt}")
