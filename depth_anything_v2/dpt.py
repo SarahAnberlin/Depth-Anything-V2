@@ -180,7 +180,6 @@ class DepthAnythingV2(nn.Module):
         begin_time = time.time()
         features = self.pretrained.get_intermediate_layers(x, self.intermediate_layer_idx[self.encoder],
                                                            return_class_token=True)
-
         depth = self.depth_head(features, patch_h, patch_w)
         depth = F.relu(depth)
         end_time = time.time()
