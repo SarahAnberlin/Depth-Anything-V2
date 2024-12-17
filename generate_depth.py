@@ -79,10 +79,8 @@ def worker(rank, world_size, encoder, model_configs, dataset, save_root):
             image = image.unsqueeze(0)
             image = torchvision.transforms.Resize((1540, 1540))(image)
             image_numpy = image.squeeze().cpu().numpy().transpose(1, 2, 0)
-            begin = time.time()
-            prediction = model(image * 2 - 1, test=True)
-            end = time.time()
-            elapse_time += end - begin
+            prediction, time_consume = model(image * 2 - 1, test=True)
+            elapse_time += time_consume
             # prediction = prediction[..., :h, :w]
             # depth = prediction
             # # print(f"Depth prediction shape: {depth.shape}")
