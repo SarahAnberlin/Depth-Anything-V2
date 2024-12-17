@@ -73,8 +73,6 @@ def worker(rank, world_size, encoder, model_configs, dataset, save_root):
     with torch.no_grad():
         for idx, (image, depth_gt) in enumerate(dataset):
             cnt += 1
-            if (idx + world_size) % world_size != rank:
-                continue
             image, depth_gt = image.to(device), depth_gt.to(device)
             image = image.unsqueeze(0)
             image = torchvision.transforms.Resize((1540, 1540))(image)
@@ -126,7 +124,7 @@ if __name__ == '__main__':
     print(f"Length of dataset: {len(dataset)}")
     encoder = 'vitl'
 
-    world_size = 2
+    world_size = 1
     print(f'World size: {world_size}')
 
     mp.spawn(worker, args=(world_size, encoder, model_configs, dataset, save_root), nprocs=world_size,
