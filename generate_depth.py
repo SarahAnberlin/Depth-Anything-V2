@@ -12,6 +12,7 @@ import torch
 import os
 import torch
 import torch.multiprocessing as mp
+import torchvision.transforms
 from matplotlib import pyplot as plt
 from torch.utils.data import DataLoader
 import cv2
@@ -76,25 +77,22 @@ def worker(rank, world_size, encoder, model_configs, dataset, save_root):
                 continue
             image, depth_gt = image.to(device), depth_gt.to(device)
             image = image.unsqueeze(0)
-            h, w = image.shape[-2:]
-            pad_h = 14 - ((h + 14) % 14)
-            pad_w = 14 - ((w + 14) % 14)
-            image = F.pad(image, (0, pad_w, 0, pad_h), mode='reflect')
+            image = torchvision.transforms.Resize((1540, 1540))(image)
             image_numpy = image.squeeze().cpu().numpy().transpose(1, 2, 0)
             begin = time.time()
             prediction = model(image * 2 - 1)
             end = time.time()
             elapse_time += end - begin
-            prediction = prediction[..., :h, :w]
-            depth = prediction
-            # print(f"Depth prediction shape: {depth.shape}")
-            if idx % 100 == 0:
-                print(f"Having processed {idx} images")
-            predict_depth_np = depth.squeeze().cpu().numpy()
-            depth_gt_np = depth_gt.squeeze().cpu().numpy()
-
-            save_single_fig(predict_depth_np, save_root, idx)
-            if cnt % 50 == 0:
+            # prediction = prediction[..., :h, :w]
+            # depth = prediction
+            # # print(f"Depth prediction shape: {depth.shape}")
+            # if idx % 100 == 0:
+            #     print(f"Having processed {idx} images")
+            # predict_depth_np = depth.squeeze().cpu().numpy()
+            # depth_gt_np = depth_gt.squeeze().cpu().numpy()
+            #
+            # save_single_fig(predict_depth_np, save_root, idx)
+            if cnt % 20 == 0:
                 print(f"Avg time: {elapse_time / cnt} for {cnt} images")
             # save_fig(image_numpy, predict_depth_np, depth_gt_np, save_root, idx)
     if rank == 0:
