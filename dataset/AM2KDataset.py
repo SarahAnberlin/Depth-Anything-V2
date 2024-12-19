@@ -89,5 +89,5 @@ if __name__ == "__main__":
     dataset = AM2KDataset()
     print(f"Dataset length: {len(dataset)}")
 
-    for id, image in enumerate(dataset):
+    for id, (image, trimap) in enumerate(dataset):
         print(f"Id: {id}, Image shape: {image.shape}, Trimap shape: {trimap.shape}")
