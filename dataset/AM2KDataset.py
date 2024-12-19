@@ -50,9 +50,14 @@ class AM2KDataset(BaseDataset):
         return image,
 
 
+def convert_rgb_path_to_trimap_path(rgb_path):
+    return rgb_path.replace("original", "trimap").replace("jpg", "png")
+
+
 def get_meta(meta_json):
     image_root = "/dataset/vfayezzhang/dataset/AM-2K/validation/original/"
     image_paths = []
+
     for root, dir, files in os.walk(image_root):
         for file in files:
             image_path = os.path.join(root, file)
@@ -60,14 +65,16 @@ def get_meta(meta_json):
                 print(f"File not found: {image_path}")
                 continue
             image_paths.append(image_path)
+
     image_paths = sorted(image_paths)
     cnt = 0
     with open(meta_json, 'w') as f:
-        for image_path in image_paths:
+        for id, image_path in image_paths:
             cnt += 1
             json.dump({
                 'id': cnt,
                 'img_path': image_path,
+                'trimap_path': convert_rgb_path_to_trimap_path(image_path)
             }, f)
             f.write('\n')
 
