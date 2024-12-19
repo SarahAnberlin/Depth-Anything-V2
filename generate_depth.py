@@ -17,9 +17,11 @@ from matplotlib import pyplot as plt
 from torch.utils.data import DataLoader
 import cv2
 
+from dataset.AM2KDataset import AM2KDataset
 from dataset.NYUDataset import NYUDataset
 from dataset.SintelDataset import SintelDataset
 from depth_anything_v2.dpt import DepthAnythingV2
+from PIL import Image
 
 
 def save_fig(image, predict_depth_vis, depth_gt_vis, save_root, id):
