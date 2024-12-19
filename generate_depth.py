@@ -107,12 +107,7 @@ def worker(rank, world_size, encoder, model_configs, dataset, save_root):
             image = image.to(device)
 
             image = image.unsqueeze(0).to(device)
-            # image = torchvision.transforms.Resize((1540, 1540))(image)
-            h, w = image.shape[-2:]
-            pad_h = 14 - ((h + 14) % 14)
-            pad_w = 14 - ((w + 14) % 14)
-            image = F.pad(image, (0, pad_w, 0, pad_h), mode='reflect')
-
+            image = torchvision.transforms.Resize((1540, 1540))(image)
             image_numpy = image.squeeze().cpu().numpy().transpose(1, 2, 0)
             if torch.cuda.is_available():
                 torch.cuda.synchronize()
@@ -122,7 +117,7 @@ def worker(rank, world_size, encoder, model_configs, dataset, save_root):
                 torch.cuda.synchronize()
             time_consume = time.time() - beg_time
             elapse_time += time_consume
-            prediction = prediction[..., :h, :w]
+
             predict_depth_np = prediction.squeeze().cpu().numpy()
 
             predict_depth_np = clip_array_percentile(predict_depth_np, 5, 95)
