@@ -120,6 +120,7 @@ def worker(rank, world_size, encoder, model_configs, dataset, save_root):
 
             predict_depth_np = prediction.squeeze().cpu().numpy()
 
+            predict_depth_np = clip_array_percentile(predict_depth_np, 5, 95)
             save_single_fig(predict_depth_np, save_root, idx)
             if cnt % 20 == 0:
                 print(f"Avg time: {elapse_time / cnt} for {cnt} images")
