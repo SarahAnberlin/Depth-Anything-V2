@@ -18,22 +18,15 @@ class AM2KDataset(BaseDataset):
         meta_json = '/dataset/vfayezzhang/dataset/AM-2K/validation/validation_meta.json'
         self.meta_json = meta_json
         self.image_paths = []
+        self.trimap_paths = []
         with open(meta_json, "r", encoding="utf-8") as infile:
             for line in infile:
                 entry = json.loads(line)
                 self.image_paths.append(entry["img_path"])
+                self.trimap_paths.append(entry["trimap_path"])
 
     def __len__(self):
         return len(self.image_paths)
-
-    def preproess(self, image_path):
-        image = cv2.imread(image_path)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype(np.float32)
-        image = image / 255.0
-
-        # depth = np.clip(depth, 0.0, self.depth_threshold)
-
-        return image
 
     def __getitem__(self, idx):
         '''
@@ -44,10 +37,18 @@ class AM2KDataset(BaseDataset):
         '''
         if isinstance(idx, list):
             return [self.__getitem__(i) for i in idx]
-        image_np = self.preproess(self.image_paths[idx])
         to_tensor = transforms.ToTensor()
+
+        image_np = cv2.imread(self.image_paths[idx])
+        image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB).astype(np.float32)
+        image_np = image_np / 255.0
         image = to_tensor(image_np)
-        return image,
+
+        trimap = cv2.imread(self.trimap_paths[idx], cv2.IMREAD_GRAYSCALE)
+        trimap = trimap.astype(np.float32) / 255.0
+        trimap = np.clip(trimap, 0.0, 1.0)
+        trimap = to_tensor(trimap)
+        return image, trimap,
 
 
 def convert_rgb_path_to_trimap_path(rgb_path):
