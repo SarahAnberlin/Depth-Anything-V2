@@ -50,13 +50,41 @@ def save_fig(image, predict_depth_vis, depth_gt_vis, save_root, id):
 
 
 def save_single_fig(predict_depth, save_root, id):
+    # Normalize to range [0, 1]
     predict_depth = (predict_depth - np.min(predict_depth)) / (np.max(predict_depth) - np.min(predict_depth))
-    predict_depth = (1 - predict_depth)
-    predict_depth = predict_depth * 255.0
-    predict_depth = predict_depth.astype(np.uint8)
+
+    # Apply colormap
+    cmap = plt.get_cmap('viridis')  # 使用 'viridis' 颜色映射，可更改为其他映射
+    predict_depth_colored = cmap(predict_depth)  # 返回 RGBA 数组
+    predict_depth_colored = (predict_depth_colored[:, :, :3] * 255).astype(np.uint8)  # 转换为 RGB
+
+    # Save as PNG using PIL
     save_path = os.path.join(save_root, f"{id}.png")
     print(f"Saving to {save_path}")
-    cv2.imwrite(save_path, predict_depth)
+    image = Image.fromarray(predict_depth_colored)
+    image.save(save_path)
+
+
+def clip_array_percentile(array, lower_percentile=20, upper_percentile=80):
+    """
+    Clips the values in the NumPy array to the range defined by the lower and upper percentiles.
+
+    Parameters:
+        array (np.ndarray): Input array.
+        lower_percentile (float): The lower percentile (default: 20).
+        upper_percentile (float): The upper percentile (default: 80).
+
+    Returns:
+        np.ndarray: The clipped array.
+    """
+    # Calculate the percentile values
+    lower_bound = np.percentile(array, lower_percentile)
+    upper_bound = np.percentile(array, upper_percentile)
+
+    # Clip the array
+    clipped_array = np.clip(array, lower_bound, upper_bound)
+
+    return clipped_array
 
 
 def worker(rank, world_size, encoder, model_configs, dataset, save_root):
@@ -71,23 +99,26 @@ def worker(rank, world_size, encoder, model_configs, dataset, save_root):
     cnt = 0
     elapse_time = 0
     with torch.no_grad():
-        for idx, (image, depth_gt) in enumerate(dataset):
+        for idx, data in enumerate(dataset):
             cnt += 1
-            image, depth_gt = image.to(device), depth_gt.to(device)
-            image = image.unsqueeze(0)
+            image = data[0]
+            image = image.to(device)
+
+            image = image.unsqueeze(0).to(device)
             image = torchvision.transforms.Resize((1540, 1540))(image)
             image_numpy = image.squeeze().cpu().numpy().transpose(1, 2, 0)
-            prediction, time_consume = model(image * 2 - 1, test=True)
+            if torch.cuda.is_available():
+                torch.cuda.synchronize()
+            beg_time = time.time()
+            prediction = model(image * 2 - 1, test=True)
+            if torch.cuda.is_available():
+                torch.cuda.synchronize()
+            time_consume = time.time() - beg_time
             elapse_time += time_consume
-            # prediction = prediction[..., :h, :w]
-            # depth = prediction
-            # # print(f"Depth prediction shape: {depth.shape}")
-            # if idx % 100 == 0:
-            #     print(f"Having processed {idx} images")
-            # predict_depth_np = depth.squeeze().cpu().numpy()
-            # depth_gt_np = depth_gt.squeeze().cpu().numpy()
-            #
-            # save_single_fig(predict_depth_np, save_root, idx)
+
+            predict_depth_np = prediction.squeeze().cpu().numpy()
+
+            save_single_fig(predict_depth_np, save_root, idx)
             if cnt % 20 == 0:
                 print(f"Avg time: {elapse_time / cnt} for {cnt} images")
             if cnt == 1002:
@@ -104,6 +135,8 @@ def get_dataset(dataset_name):
         return SintelDataset()
     if dataset_name == 'NYUv2':
         return NYUDataset()
+    if dataset_name == 'AM2K':
+        return AM2KDataset()
 
 
 if __name__ == '__main__':
@@ -116,10 +149,11 @@ if __name__ == '__main__':
         'vitg': {'encoder': 'vitg', 'features': 384, 'out_channels': [1536, 1536, 1536, 1536]}
     }
     # dataset_name = 'Sintel'
-    dataset_name = 'Sintel'
+    # dataset_name = 'Sintel'
     # dataset_name = "NYUv2"
+    dataset_name = 'AM2K'
     dataset = get_dataset(dataset_name)
-    save_root = '/dataset/vfayezzhang/test/depth-pro/infer/vis/dav2/'
+    save_root = '/dataset/vfayezzhang/test/depth-pro/infer/vis/dav2-pro-test-large/'
     save_root = os.path.join(save_root, dataset_name)
     os.makedirs(save_root, exist_ok=True)
 
