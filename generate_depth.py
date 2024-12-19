@@ -107,7 +107,7 @@ def worker(rank, world_size, encoder, model_configs, dataset, save_root):
             image = image.to(device)
 
             image = image.unsqueeze(0).to(device)
-            image = torchvision.transforms.Resize((1540, 1540))(image)
+            # image = torchvision.transforms.Resize((1540, 1540))(image)
             image_numpy = image.squeeze().cpu().numpy().transpose(1, 2, 0)
             if torch.cuda.is_available():
                 torch.cuda.synchronize()
