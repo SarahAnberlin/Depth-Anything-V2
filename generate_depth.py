@@ -152,9 +152,9 @@ if __name__ == '__main__':
         'vitg': {'encoder': 'vitg', 'features': 384, 'out_channels': [1536, 1536, 1536, 1536]}
     }
     # dataset_name = 'Sintel'
-    # dataset_name = 'Sintel'
+    dataset_name = 'Sintel'
     # dataset_name = "NYUv2"
-    dataset_name = 'AM2K'
+    # dataset_name = 'AM2K'
     dataset = get_dataset(dataset_name)
     save_root = '/dataset/vfayezzhang/test/depth-pro/infer/vis/dav2-pro-test-large/'
     save_root = os.path.join(save_root, dataset_name)
