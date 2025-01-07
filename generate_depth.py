@@ -123,6 +123,7 @@ def worker(rank, world_size, encoder, model_configs, dataset, save_root):
                 # image_numpy = image.squeeze().cpu().numpy().transpose(1, 2, 0)
                 if torch.cuda.is_available():
                     torch.cuda.synchronize()
+                print(f"image shape: {image.shape}")
                 beg_time = time.time()
                 prediction = model(image * 2 - 1, test=True)
                 if torch.cuda.is_available():
