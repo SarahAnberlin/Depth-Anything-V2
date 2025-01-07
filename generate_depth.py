@@ -112,28 +112,28 @@ def worker(rank, world_size, encoder, model_configs, dataset, save_root):
             image = data[0]
             image = image.unsqueeze(0).to(device)
             for resolution in resolutions:
-                image = transforms.Resize((resolution, resolution))(image)
+                image_test = transforms.Resize((resolution, resolution))(image)
 
                 # image = torchvision.transforms.Resize((1540, 1540))(image)
-                h, w = image.shape[-2:]
+                h, w = image_test.shape[-2:]
                 # pad_h = 14 - ((h + 14) % 14)
                 # pad_w = 14 - ((w + 14) % 14)
                 # image = F.pad(image, (0, pad_w, 0, pad_h), mode='reflect')
                 # image_numpy = image.squeeze().cpu().numpy().transpose(1, 2, 0)
                 if torch.cuda.is_available():
                     torch.cuda.synchronize()
-                print(f"image shape: {image.shape}")
+                print(f"image shape: {image_test.shape}")
                 beg_time = time.time()
-                prediction = model(image * 2 - 1, test=True)
+                prediction = model(image_test * 2 - 1, test=True)
                 if torch.cuda.is_available():
                     torch.cuda.synchronize()
                 time_consume = time.time() - beg_time
                 elapse_time[resolution] += time_consume
-                prediction = prediction[..., :h, :w]
-                predict_depth_np = prediction.squeeze().cpu().numpy()
-
-                predict_depth_np = clip_array_percentile(predict_depth_np, 5, 95)
-                save_single_fig(predict_depth_np, save_root, idx)
+                # prediction = prediction[..., :h, :w]
+                # predict_depth_np = prediction.squeeze().cpu().numpy()
+                #
+                # predict_depth_np = clip_array_percentile(predict_depth_np, 5, 95)
+                # save_single_fig(predict_depth_np, save_root, idx)
             if cnt % 20 == 0:
                 for resolution in resolutions:
                     print(f"Resolution: {resolution}, Elapse time: {elapse_time[resolution] / cnt}")
