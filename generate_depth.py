@@ -110,10 +110,9 @@ def worker(rank, world_size, encoder, model_configs, dataset, save_root):
         for idx, data in enumerate(dataset):
             cnt += 1
             image = data[0]
-
+            image = image.unsqueeze(0).to(device)
             for resolution in resolutions:
                 image = transforms.Resize((resolution, resolution))(image)
-                image = image.unsqueeze(0).to(device)
 
                 # image = torchvision.transforms.Resize((1540, 1540))(image)
                 h, w = image.shape[-2:]
