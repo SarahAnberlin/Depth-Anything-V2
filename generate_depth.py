@@ -12,7 +12,7 @@ import torch
 import os
 import torch
 import torch.multiprocessing as mp
-import torchvision.transforms
+from torchvision import transforms
 from matplotlib import pyplot as plt
 from torch.utils.data import DataLoader
 import cv2
@@ -99,40 +99,44 @@ def worker(rank, world_size, encoder, model_configs, dataset, save_root):
                    map_location='cpu', weights_only=True))
     model = model.to(device).eval()
     cnt = 0
-    elapse_time = 0
+    elapse_time = {
+        112: 0,
+        224: 0,
+        336: 0,
+        518: 0
+    }
+    resolutions = [112, 224, 336, 518]
     with torch.no_grad():
         for idx, data in enumerate(dataset):
             cnt += 1
             image = data[0]
             image = image.to(device)
 
-            image = image.unsqueeze(0).to(device)
-            # image = torchvision.transforms.Resize((1540, 1540))(image)
-            h, w = image.shape[-2:]
-            pad_h = 14 - ((h + 14) % 14)
-            pad_w = 14 - ((w + 14) % 14)
-            image = F.pad(image, (0, pad_w, 0, pad_h), mode='reflect')
-            image_numpy = image.squeeze().cpu().numpy().transpose(1, 2, 0)
-            if torch.cuda.is_available():
-                torch.cuda.synchronize()
-            beg_time = time.time()
-            prediction = model(image * 2 - 1, test=True)
-            if torch.cuda.is_available():
-                torch.cuda.synchronize()
-            time_consume = time.time() - beg_time
-            elapse_time += time_consume
-            prediction = prediction[..., :h, :w]
-            predict_depth_np = prediction.squeeze().cpu().numpy()
+            for resolution in resolutions:
+                image = transforms.Resize((resolution, resolution))(image)
+                image = image.unsqueeze(0).to(device)
+                # image = torchvision.transforms.Resize((1540, 1540))(image)
+                h, w = image.shape[-2:]
+                pad_h = 14 - ((h + 14) % 14)
+                pad_w = 14 - ((w + 14) % 14)
+                image = F.pad(image, (0, pad_w, 0, pad_h), mode='reflect')
+                image_numpy = image.squeeze().cpu().numpy().transpose(1, 2, 0)
+                if torch.cuda.is_available():
+                    torch.cuda.synchronize()
+                beg_time = time.time()
+                prediction = model(image * 2 - 1, test=True)
+                if torch.cuda.is_available():
+                    torch.cuda.synchronize()
+                time_consume = time.time() - beg_time
+                elapse_time[resolution] += time_consume
+                prediction = prediction[..., :h, :w]
+                predict_depth_np = prediction.squeeze().cpu().numpy()
 
-            predict_depth_np = clip_array_percentile(predict_depth_np, 5, 95)
-            save_single_fig(predict_depth_np, save_root, idx)
+                predict_depth_np = clip_array_percentile(predict_depth_np, 5, 95)
+                save_single_fig(predict_depth_np, save_root, idx)
             if cnt % 20 == 0:
-                print(f"Avg time: {elapse_time / cnt} for {cnt} images")
-            if cnt == 1002:
-                break
-            # save_fig(image_numpy, predict_depth_np, depth_gt_np, save_root, idx)
-    if rank == 0:
-        print(f"Average time: {elapse_time / cnt}")
+                for resolution in resolutions:
+                    print(f"Resolution: {resolution}, Elapse time: {elapse_time[resolution] / cnt}")
 
 
 def get_dataset(dataset_name):
