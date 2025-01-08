@@ -22,6 +22,7 @@ from dataset.NYUDataset import NYUDataset
 from dataset.SintelDataset import SintelDataset
 from depth_anything_v2.dpt import DepthAnythingV2
 from PIL import Image
+from torchvision import transforms
 
 
 def save_fig(image, predict_depth_vis, depth_gt_vis, save_root, id):
@@ -98,45 +99,26 @@ def worker(rank, world_size, encoder, model_configs, dataset, save_root):
         torch.load(f'/dataset/vfayezzhang/test/DIR/main/checkpoints/depth_anything_v2_{encoder}_{rank}.pth',
                    map_location='cpu', weights_only=True))
     model = model.to(device).eval()
-    cnt = 0
-    elapse_time = {
-        112: 0,
-        224: 0,
-        336: 0,
-        518: 0
-    }
-    resolutions = [112, 224, 336, 518]
+    transform = transforms.Compose([
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
+
     with torch.no_grad():
         for idx, data in enumerate(dataset):
-            cnt += 1
-            image = data[0]
+            image = data
+            print(f"Image shape: {image.shape}")
             image = image.unsqueeze(0).to(device)
-            for resolution in resolutions:
-                image_test = transforms.Resize((resolution, resolution))(image)
-
-                # image = torchvision.transforms.Resize((1540, 1540))(image)
-                h, w = image_test.shape[-2:]
-                # pad_h = 14 - ((h + 14) % 14)
-                # pad_w = 14 - ((w + 14) % 14)
-                # image = F.pad(image, (0, pad_w, 0, pad_h), mode='reflect')
-                # image_numpy = image.squeeze().cpu().numpy().transpose(1, 2, 0)
-                if torch.cuda.is_available():
-                    torch.cuda.synchronize()
-                print(f"image shape: {image_test.shape}")
-                beg_time = time.time()
-                prediction = model(image_test * 2 - 1, test=True)
-                if torch.cuda.is_available():
-                    torch.cuda.synchronize()
-                time_consume = time.time() - beg_time
-                elapse_time[resolution] += time_consume
-                # prediction = prediction[..., :h, :w]
-                # predict_depth_np = prediction.squeeze().cpu().numpy()
-                #
-                # predict_depth_np = clip_array_percentile(predict_depth_np, 5, 95)
-                # save_single_fig(predict_depth_np, save_root, idx)
-            if cnt % 20 == 0:
-                for resolution in resolutions:
-                    print(f"Resolution: {resolution}, Elapse time: {elapse_time[resolution] / cnt}")
+            h, w = image.shape[-2:]
+            pad_h = 14 - ((h + 14) % 14)
+            pad_w = 14 - ((w + 14) % 14)
+            new_h = h + pad_h
+            new_w = w + pad_w
+            image_test = transforms.Resize((new_h, new_w))(image)
+            image_test = transform(image_test)
+            prediction = model(image_test, test=True)
+            prediction = transforms.Resize((h, w))(prediction)
+            prediction = prediction.squeeze()
+            save_path = os.path.join(save_root, f"{idx + 1}.png")
 
 
 def get_dataset(dataset_name):
@@ -160,9 +142,9 @@ if __name__ == '__main__':
         'vitg': {'encoder': 'vitg', 'features': 384, 'out_channels': [1536, 1536, 1536, 1536]}
     }
     # dataset_name = 'Sintel'
-    dataset_name = 'Sintel'
+    # dataset_name = 'Sintel'
     # dataset_name = "NYUv2"
-    # dataset_name = 'AM2K'
+    dataset_name = 'AM2K'
     dataset = get_dataset(dataset_name)
     save_root = '/dataset/vfayezzhang/test/depth-pro/infer/vis/dav2-test/'
     save_root = os.path.join(save_root, dataset_name)
