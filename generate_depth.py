@@ -117,8 +117,9 @@ def worker(rank, world_size, encoder, model_configs, dataset, save_root):
             image_test = transforms.Resize((new_h, new_w), interpolation=InterpolationMode.BICUBIC)(image)
             image_test = transform(image_test)
             prediction = model(image_test, test=True)
+
             prediction = transforms.Resize((h, w), interpolation=InterpolationMode.BILINEAR)(prediction)
-            prediction = prediction.squeeze(0)
+            prediction = (prediction - torch.min(prediction)) / (torch.max(prediction) - torch.min(prediction))
             save_path = os.path.join(save_root, f"{idx + 1}.png")
             save_image(prediction, save_path)
 
