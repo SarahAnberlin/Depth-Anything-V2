@@ -16,7 +16,7 @@ from torchvision import transforms
 from matplotlib import pyplot as plt
 from torch.utils.data import DataLoader
 import cv2
-
+from torchvision.utils import save_image
 from dataset.AM2KDataset import AM2KDataset
 from dataset.NYUDataset import NYUDataset
 from dataset.SintelDataset import SintelDataset
@@ -117,8 +117,9 @@ def worker(rank, world_size, encoder, model_configs, dataset, save_root):
             image_test = transform(image_test)
             prediction = model(image_test, test=True)
             prediction = transforms.Resize((h, w))(prediction)
-            prediction = prediction.squeeze()
+            prediction = prediction.squeeze(0)
             save_path = os.path.join(save_root, f"{idx + 1}.png")
+            save_image(prediction, save_path)
 
 
 def get_dataset(dataset_name):
