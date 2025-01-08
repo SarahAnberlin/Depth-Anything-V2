@@ -1,3 +1,4 @@
+from torchvision.transforms.functional import InterpolationMode
 import shutil
 import time
 
@@ -113,10 +114,10 @@ def worker(rank, world_size, encoder, model_configs, dataset, save_root):
             pad_w = 14 - ((w + 14) % 14)
             new_h = h + pad_h
             new_w = w + pad_w
-            image_test = transforms.Resize((new_h, new_w))(image)
+            image_test = transforms.Resize((new_h, new_w), interpolation=InterpolationMode.BICUBIC)(image)
             image_test = transform(image_test)
             prediction = model(image_test, test=True)
-            prediction = transforms.Resize((h, w))(prediction)
+            prediction = transforms.Resize((h, w), interpolation=InterpolationMode.BICUBIC)(prediction)
             prediction = prediction.squeeze(0)
             save_path = os.path.join(save_root, f"{idx + 1}.png")
             save_image(prediction, save_path)
