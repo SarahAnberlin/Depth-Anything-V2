@@ -106,6 +106,10 @@ def worker(rank, world_size, encoder, model_configs, dataset, save_root):
 
     with torch.no_grad():
         for idx, data in enumerate(dataset):
+            next_save_path = os.path.join(save_root, f"{idx + 2}.png")
+            if os.path.exists(next_save_path):
+                continue
+
             image = data
             print(f"Image shape: {image.shape}")
             image = image.unsqueeze(0).to(device)
